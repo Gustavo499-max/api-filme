@@ -1,0 +1,383 @@
+openapi: 3.0.3
+info:
+  title: API de Filmes da Marvel
+  description: |
+    API REST dedicada ao Universo Cinematográfico Marvel (MCU).
+    Permite consultar filmes, personagens e fases do MCU, além de cadastrar novos filmes ao catálogo.
+  version: 1.0.0
+  contact:
+    name: Suporte
+    email: suporte@marvelapi.com
+
+servers:
+  - url: https://api.filmesmarvel.com/v1
+    description: Servidor de produção
+
+tags:
+  - name: Filmes
+    description: Operações com filmes do MCU
+  - name: Personagens
+    description: Operações com personagens da Marvel
+
+paths:
+  /filmes:
+    get:
+      tags:
+        - Filmes
+      summary: Listar todos os filmes
+      operationId: listarFilmes
+      description: Retorna a lista completa de filmes do MCU, com opção de filtro por fase e ano.
+      parameters:
+        - name: fase
+          in: query
+          required: false
+          description: Filtrar por fase do MCU
+          schema:
+            type: integer
+            enum: [1, 2, 3, 4, 5, 6]
+            example: 3
+        - name: ano
+          in: query
+          required: false
+          description: Filtrar por ano de lançamento
+          schema:
+            type: integer
+            example: 2019
+      responses:
+        "200":
+          description: Lista de filmes retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Filme"
+        "400":
+          description: Parâmetros de filtro inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+    post:
+      tags:
+        - Filmes
+      summary: Cadastrar novo filme
+      operationId: cadastrarFilme
+      description: Adiciona um novo filme ao catálogo do MCU.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilmeInput"
+      responses:
+        "201":
+          description: Filme cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Filme"
+        "400":
+          description: Dados inválidos ou campos obrigatórios ausentes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+  /filmes/{id}:
+    get:
+      tags:
+        - Filmes
+      summary: Buscar filme por ID
+      operationId: buscarFilmePorId
+      description: Retorna os detalhes completos de um filme do MCU pelo seu ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único do filme
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Filme encontrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Filme"
+        "404":
+          description: Filme não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+  /filmes/{id}/personagens:
+    get:
+      tags:
+        - Filmes
+      summary: Listar personagens de um filme
+      operationId: listarPersonagensPorFilme
+      description: Retorna todos os personagens que aparecem em um filme específico do MCU.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único do filme
+          schema:
+            type: integer
+            example: 1
+        - name: heroi
+          in: query
+          required: false
+          description: Filtrar apenas heróis (true) ou vilões (false)
+          schema:
+            type: boolean
+            example: true
+      responses:
+        "200":
+          description: Personagens retornados com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Personagem"
+        "404":
+          description: Filme não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+  /personagens:
+    get:
+      tags:
+        - Personagens
+      summary: Listar todos os personagens
+      operationId: listarPersonagens
+      description: Retorna a lista de personagens cadastrados no MCU.
+      parameters:
+        - name: heroi
+          in: query
+          required: false
+          description: Filtrar por heróis (true) ou vilões (false)
+          schema:
+            type: boolean
+        - name: time
+          in: query
+          required: false
+          description: Filtrar por time ou grupo do personagem
+          schema:
+            type: string
+            enum: [vingadores, guardioes_da_galaxia, x-men, quarteto_fantastico, eternos]
+            example: vingadores
+      responses:
+        "200":
+          description: Lista de personagens retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Personagem"
+        "400":
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+  /personagens/{id}:
+    get:
+      tags:
+        - Personagens
+      summary: Buscar personagem por ID
+      operationId: buscarPersonagemPorId
+      description: Retorna os detalhes completos de um personagem do MCU pelo seu ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador único do personagem
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Personagem encontrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Personagem"
+        "404":
+          description: Personagem não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+components:
+  schemas:
+    Filme:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único do filme
+          example: 1
+        titulo:
+          type: string
+          description: Título do filme
+          example: Vingadores - Ultimato
+        titulo_original:
+          type: string
+          description: Título original em inglês
+          example: Avengers - Endgame
+        fase:
+          type: integer
+          description: Fase do MCU em que o filme se insere
+          enum: [1, 2, 3, 4, 5, 6]
+          example: 3
+        numero_cronologico:
+          type: integer
+          description: Posição cronológica na ordem do MCU
+          example: 23
+        ano_lancamento:
+          type: integer
+          description: Ano de lançamento do filme
+          example: 2019
+        duracao_minutos:
+          type: integer
+          description: Duração do filme em minutos
+          example: 181
+        diretor:
+          type: string
+          description: Nome do(s) diretor(es)
+          example: Anthony e Joe Russo
+        bilheteria_bilhoes:
+          type: number
+          format: float
+          description: Bilheteria total em bilhões de dólares
+          example: 2.798
+        nota_imdb:
+          type: number
+          format: float
+          description: Nota no IMDb (0 a 10)
+          example: 8.4
+        sinopse:
+          type: string
+          description: Breve sinopse do filme
+          example: Após os eventos devastadores de Guerra Infinita, os Vingadores se reúnem para reverter as ações de Thanos.
+      required:
+        - id
+        - titulo
+        - fase
+        - ano_lancamento
+        - diretor
+
+    FilmeInput:
+      type: object
+      properties:
+        titulo:
+          type: string
+          description: Título em português
+          example: Thor - Amor e Trovão
+        titulo_original:
+          type: string
+          description: Título original em inglês
+          example: Thor - Love and Thunder
+        fase:
+          type: integer
+          description: Fase do MCU
+          enum: [1, 2, 3, 4, 5, 6]
+          example: 4
+        numero_cronologico:
+          type: integer
+          description: Posição cronológica no MCU
+          example: 29
+        ano_lancamento:
+          type: integer
+          description: Ano de lançamento
+          example: 2022
+        duracao_minutos:
+          type: integer
+          description: Duração em minutos
+          example: 119
+        diretor:
+          type: string
+          description: Diretor do filme
+          example: Taika Waititi
+        sinopse:
+          type: string
+          description: Breve sinopse do filme
+          example: Thor embarca em uma jornada diferente de tudo que já enfrentou.
+      required:
+        - titulo
+        - fase
+        - ano_lancamento
+        - diretor
+
+    Personagem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador único do personagem
+          example: 1
+        nome_heroi:
+          type: string
+          description: Nome do alter ego ou codinome
+          example: Homem de Ferro
+        nome_real:
+          type: string
+          description: Nome civil do personagem
+          example: Tony Stark
+        heroi:
+          type: boolean
+          description: Indica se é herói (true) ou vilão (false)
+          example: true
+        time:
+          type: string
+          description: Grupo ou equipe do personagem
+          enum: [vingadores, guardioes_da_galaxia, x-men, quarteto_fantastico, eternos]
+          example: vingadores
+        ator:
+          type: string
+          description: Nome do ator que interpreta o personagem
+          example: Robert Downey Jr.
+        poderes:
+          type: array
+          items:
+            type: string
+          description: Lista de poderes ou habilidades do personagem
+          example: ["armadura tecnológica", "gênio inventor", "voo", "repulsores"]
+        primeira_aparicao_filme_id:
+          type: integer
+          description: ID do filme em que o personagem apareceu pela primeira vez
+          example: 1
+      required:
+        - id
+        - nome_heroi
+        - heroi
+
+    Erro:
+      type: object
+      properties:
+        codigo:
+          type: integer
+          description: Código HTTP do erro
+          example: 404
+        mensagem:
+          type: string
+          description: Descrição resumida do erro
+          example: Filme não encontrado
+        detalhes:
+          type: string
+          description: Informações adicionais sobre o erro
+          example: Nenhum filme com id=99 foi localizado no catálogo do MCU
+      required:
+        - codigo
+        - mensagem

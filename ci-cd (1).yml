@@ -1,0 +1,59 @@
+name: CI/CD — API de Filmes da Marvel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  validar:
+    name: Validar OpenAPI com Spectral
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar Spectral CLI
+        run: npm install -g @stoplight/spectral-cli
+
+      - name: Validar openapi.yaml com Spectral
+        run: spectral lint openapi.yaml --ruleset https://unpkg.com/@stoplight/spectral-owasp-ruleset/dist/ruleset.mjs || spectral lint openapi.yaml
+
+  publicar-docs:
+    name: Publicar Documentação no GitHub Pages
+    runs-on: ubuntu-latest
+    needs: validar
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Gerar documentação HTML com Redoc
+        run: |
+          npx @redocly/cli build-docs openapi.yaml --output index.html
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Fazer upload dos artefatos para o Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
