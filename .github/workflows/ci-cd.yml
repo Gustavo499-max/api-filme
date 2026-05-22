@@ -1,7 +1,7 @@
 name: CI/CD
 
 on:
-  push:
+ push:
     branches:
       - main
       - principal
@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -23,15 +23,14 @@ jobs:
         run: npm install -g @stoplight/spectral-cli
 
       - name: Validar OpenAPI
-      run: spectral lint openapi.yaml --ruleset "https://unpkg.com/@stoplight/spectral-rulesets/dist/oas/index.json"
-       
+        run: npx spectral lint openapi.yaml
 
   publicar-docs:
     needs: validar
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout do repositório
         uses: actions/checkout@v4
 
       - name: Instalar Redoc
@@ -40,7 +39,7 @@ jobs:
       - name: Gerar documentação HTML
         run: redoc-cli build openapi.yaml -o index.html
 
-      - name: Publicar no GitHub Pages
+      - name: Publicar GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
