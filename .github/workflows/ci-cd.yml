@@ -23,7 +23,8 @@ jobs:
         run: npm install -g @stoplight/spectral-cli
 
       - name: Validar OpenAPI
-        run: spectral lint openapi.yaml
+      run: spectral lint openapi.yaml --ruleset "https://unpkg.com/@stoplight/spectral-rulesets/dist/oas/index.json"
+       
 
   publicar-docs:
     needs: validar
